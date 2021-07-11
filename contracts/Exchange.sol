@@ -157,4 +157,56 @@ contract Exchange {
         uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
         return tokenBalanceForAddress[msg.sender][symbolNameIndex];
     }
+
+    function getSellOrderBook(string memory symbolName)
+        public
+        view
+        returns (uint256[] memory, uint256[] memory)
+    {
+        uint8 tokenNameIndex = getSymbolIndexOrThrow(symbolName);
+        uint256[] memory arrPricesSell = new uint256[](
+            tokens[tokenNameIndex].amountSellPrices
+        );
+        uint256[] memory arrVolumesSell = new uint256[](
+            tokens[tokenNameIndex].amountSellPrices
+        );
+        uint256 sellWhilePrice = tokens[tokenNameIndex].curSellPrice;
+        uint256 sellCounter = 0;
+        if (tokens[tokenNameIndex].curSellPrice > 0) {
+            while (sellWhilePrice <= tokens[tokenNameIndex].highestSellPrice) {
+                arrPricesSell[sellCounter] = sellWhilePrice;
+                uint256 sellVolumeAtPrice = 0;
+                uint256 sellOffersKey = 0;
+                sellOffersKey = tokens[tokenNameIndex]
+                .sellBook[sellWhilePrice]
+                .offers_key;
+                while (
+                    sellOffersKey <=
+                    tokens[tokenNameIndex]
+                    .sellBook[sellWhilePrice]
+                    .offers_length
+                ) {
+                    sellVolumeAtPrice += tokens[tokenNameIndex]
+                    .sellBook[sellWhilePrice]
+                    .offers[sellOffersKey]
+                    .amountTokens;
+                    sellOffersKey++;
+                }
+                arrVolumesSell[sellCounter] = sellVolumeAtPrice;
+                if (
+                    tokens[tokenNameIndex]
+                    .sellBook[sellWhilePrice]
+                    .higherPrice == 0
+                ) {
+                    break;
+                } else {
+                    sellWhilePrice = tokens[tokenNameIndex]
+                    .sellBook[sellWhilePrice]
+                    .higherPrice;
+                }
+                sellCounter++;
+            }
+        }
+        return (arrPricesSell, arrVolumesSell);
+    }
 }
