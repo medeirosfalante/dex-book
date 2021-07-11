@@ -83,3 +83,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         }
         return 0;
     }
+
+    function depositBnb() public payable {
+        require(
+            balanceBnbForAddress[msg.sender] + msg.value >=
+                balanceBnbForAddress[msg.sender]
+        );
+        balanceBnbForAddress[msg.sender] += msg.value;
+    }
