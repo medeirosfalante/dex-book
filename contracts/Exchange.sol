@@ -42,7 +42,7 @@ contract Exchange {
 
     function stringsEqual(string storage _a, string memory _b)
         internal
-        view
+        pure
         returns (bool)
     {
         bytes storage a = bytes(_a);
