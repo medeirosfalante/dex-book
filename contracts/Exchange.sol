@@ -584,4 +584,245 @@ contract Exchange {
             }
         }
     }
+    function sellToken(
+        string memory symbolName,
+        uint256 priceInWei,
+        uint256 amount
+    ) public payable {
+      
+        uint8 tokenNameIndex = getSymbolIndexOrThrow(symbolName);
+        uint256 totalAmountOfEtherNecessary = 0;
+        uint256 totalAmountOfEtherAvailable = 0;
+
+        uint256 amountOfTokensNecessary = amount;
+
+        if (
+            tokens[tokenNameIndex].amountBuyPrices == 0 ||
+            tokens[tokenNameIndex].curBuyPrice < priceInWei
+        ) {
+            createSellLimitOrderForTokensUnableToMatchWithBuyOrderForSeller(
+                symbolName,
+                tokenNameIndex,
+                priceInWei,
+                amountOfTokensNecessary,
+                totalAmountOfEtherNecessary
+            );
+        } else {
+
+            uint256 whilePrice = tokens[tokenNameIndex].curBuyPrice;
+            uint256 offers_key;
+           
+            while (whilePrice >= priceInWei && amountOfTokensNecessary > 0) {
+                offers_key = tokens[tokenNameIndex]
+                .buyBook[whilePrice]
+                .offers_key;
+
+                while (
+                    offers_key <=
+                    tokens[tokenNameIndex].buyBook[whilePrice].offers_length &&
+                    amountOfTokensNecessary > 0
+                ) {
+                    uint256 volumeAtPriceFromAddress = tokens[tokenNameIndex]
+                    .buyBook[whilePrice]
+                    .offers[offers_key]
+                    .amountTokens;
+                   
+                    if (volumeAtPriceFromAddress <= amountOfTokensNecessary) {
+                       
+                        totalAmountOfEtherAvailable =
+                            volumeAtPriceFromAddress *
+                            whilePrice;
+
+                        require(
+                            tokenBalanceForAddress[msg.sender][
+                                tokenNameIndex
+                            ] >= volumeAtPriceFromAddress
+                        );
+
+                      
+                        tokenBalanceForAddress[msg.sender][
+                            tokenNameIndex
+                        ] -= volumeAtPriceFromAddress;
+
+                       
+                        require(
+                            tokenBalanceForAddress[msg.sender][tokenNameIndex] -
+                                volumeAtPriceFromAddress >=
+                                0
+                        );
+                       
+                        require(
+                            tokenBalanceForAddress[
+                                tokens[tokenNameIndex]
+                                .buyBook[whilePrice]
+                                .offers[offers_key]
+                                .who
+                            ][tokenNameIndex] +
+                                volumeAtPriceFromAddress >=
+                                tokenBalanceForAddress[
+                                    tokens[tokenNameIndex]
+                                    .buyBook[whilePrice]
+                                    .offers[offers_key]
+                                    .who
+                                ][tokenNameIndex]
+                        );
+                      
+                        require(
+                            balanceBnbForAddress[msg.sender] +
+                                totalAmountOfEtherAvailable >=
+                                balanceBnbForAddress[msg.sender]
+                        );
+
+                        tokenBalanceForAddress[
+                            tokens[tokenNameIndex]
+                            .buyBook[whilePrice]
+                            .offers[offers_key]
+                            .who
+                        ][tokenNameIndex] += volumeAtPriceFromAddress;
+                        
+                        tokens[tokenNameIndex]
+                        .buyBook[whilePrice]
+                        .offers[offers_key]
+                        .amountTokens = 0;
+       
+                        balanceBnbForAddress[
+                            msg.sender
+                        ] += totalAmountOfEtherAvailable;
+                      
+                        tokens[tokenNameIndex].buyBook[whilePrice].offers_key++;
+
+              
+    
+                        amountOfTokensNecessary -= volumeAtPriceFromAddress;
+
+                    } else {
+    
+                        require(
+                            volumeAtPriceFromAddress - amountOfTokensNecessary >
+                                0
+                        );
+
+   
+                        totalAmountOfEtherNecessary =
+                            amountOfTokensNecessary *
+                            whilePrice;
+
+                    
+                        require(
+                            tokenBalanceForAddress[msg.sender][
+                                tokenNameIndex
+                            ] >= amountOfTokensNecessary
+                        );
+
+
+                        tokenBalanceForAddress[msg.sender][
+                            tokenNameIndex
+                        ] -= amountOfTokensNecessary;
+
+                        require(
+                            tokenBalanceForAddress[msg.sender][
+                                tokenNameIndex
+                            ] >= amountOfTokensNecessary
+                        );
+                        require(
+                            balanceBnbForAddress[msg.sender] +
+                                totalAmountOfEtherNecessary >=
+                                balanceBnbForAddress[msg.sender]
+                        );
+                        require(
+                            tokenBalanceForAddress[
+                                tokens[tokenNameIndex]
+                                .buyBook[whilePrice]
+                                .offers[offers_key]
+                                .who
+                            ][tokenNameIndex] +
+                                amountOfTokensNecessary >=
+                                tokenBalanceForAddress[
+                                    tokens[tokenNameIndex]
+                                    .buyBook[whilePrice]
+                                    .offers[offers_key]
+                                    .who
+                                ][tokenNameIndex]
+                        );
+
+                        tokens[tokenNameIndex]
+                        .buyBook[whilePrice]
+                        .offers[offers_key]
+                        .amountTokens -= amountOfTokensNecessary;
+
+                        balanceBnbForAddress[
+                            msg.sender
+                        ] += totalAmountOfEtherNecessary;
+
+                        tokenBalanceForAddress[
+                            tokens[tokenNameIndex]
+                            .buyBook[whilePrice]
+                            .offers[offers_key]
+                            .who
+                        ][tokenNameIndex] += amountOfTokensNecessary;
+
+                        amountOfTokensNecessary = 0;
+                    }
+
+
+                    if (
+                        offers_key ==
+                        tokens[tokenNameIndex]
+                        .buyBook[whilePrice]
+                        .offers_length &&
+                        tokens[tokenNameIndex]
+                        .buyBook[whilePrice]
+                        .offers[offers_key]
+                        .amountTokens ==
+                        0
+                    ) {
+
+                        tokens[tokenNameIndex].amountBuyPrices--;
+                        if (
+                            whilePrice ==
+                            tokens[tokenNameIndex]
+                            .buyBook[whilePrice]
+                            .lowerPrice ||
+                            tokens[tokenNameIndex]
+                            .buyBook[whilePrice]
+                            .lowerPrice ==
+                            0
+                        ) {
+                            tokens[tokenNameIndex].curBuyPrice = 0;
+                        } else {
+    
+                            tokens[tokenNameIndex].curBuyPrice = tokens[
+                                tokenNameIndex
+                            ]
+                            .buyBook[whilePrice]
+                            .lowerPrice;
+
+                            tokens[tokenNameIndex]
+                            .buyBook[
+                                tokens[tokenNameIndex]
+                                .buyBook[whilePrice]
+                                .lowerPrice
+                            ]
+                            .higherPrice = tokens[tokenNameIndex].curBuyPrice;
+                        }
+                    }
+                    offers_key++;
+                }
+
+                whilePrice = tokens[tokenNameIndex].curBuyPrice;
+            }
+
+            if (amountOfTokensNecessary > 0) {
+
+
+                createSellLimitOrderForTokensUnableToMatchWithBuyOrderForSeller(
+                    symbolName,
+                    tokenNameIndex,
+                    priceInWei,
+                    amountOfTokensNecessary,
+                    totalAmountOfEtherNecessary
+                );
+            }
+        }
+    }
 }
