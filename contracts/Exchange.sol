@@ -825,4 +825,42 @@ contract Exchange {
             }
         }
     }
+
+    function createSellLimitOrderForTokensUnableToMatchWithBuyOrderForSeller(
+        string  memory symbolName,
+        uint8 tokenNameIndex,
+        uint256 priceInWei,
+        uint256 amountOfTokensNecessary,
+        uint256 totalAmountOfEtherNecessary
+    ) internal {
+
+        totalAmountOfEtherNecessary = amountOfTokensNecessary * priceInWei;
+
+        require(totalAmountOfEtherNecessary >= amountOfTokensNecessary);
+        require(totalAmountOfEtherNecessary >= priceInWei);
+        require(
+            tokenBalanceForAddress[msg.sender][tokenNameIndex] >=
+                amountOfTokensNecessary
+        );
+        require(
+            tokenBalanceForAddress[msg.sender][tokenNameIndex] -
+                amountOfTokensNecessary >=
+                0
+        );
+        require(
+            balanceBnbForAddress[msg.sender] + totalAmountOfEtherNecessary >=
+                balanceBnbForAddress[msg.sender]
+        );
+
+        tokenBalanceForAddress[msg.sender][
+            tokenNameIndex
+        ] -= amountOfTokensNecessary;
+
+        addSellOffer(
+            tokenNameIndex,
+            priceInWei,
+            amountOfTokensNecessary,
+            msg.sender
+        );
+    }
 }
