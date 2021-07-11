@@ -63,6 +63,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         return index;
     }
 
+    function hasToken(string memory symbolName) public view returns (bool) {
+        uint8 index = getSymbolIndex(symbolName);
+        if (index == 0) {
+            return false;
+        }
+        return true;
+    }
+
     function getSymbolIndex(string memory symbolName)
         internal
         view
