@@ -108,3 +108,22 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         return balanceBnbForAddress[msg.sender];
     }
 
+    function depositToken(string memory symbolName, uint256 amountTokens)
+        public
+    {
+        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
+        require(tokens[symbolNameIndex].tokenContract != address(0));
+
+        IERC20 token = IERC20(tokens[symbolNameIndex].tokenContract);
+
+        require(
+            token.transferFrom(msg.sender, address(this), amountTokens) == true
+        );
+        require(
+            tokenBalanceForAddress[msg.sender][symbolNameIndex] +
+                amountTokens >=
+                tokenBalanceForAddress[msg.sender][symbolNameIndex]
+        );
+        tokenBalanceForAddress[msg.sender][symbolNameIndex] += amountTokens;
+    }
+
