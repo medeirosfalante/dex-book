@@ -147,3 +147,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         tokenBalanceForAddress[msg.sender][symbolNameIndex] -= amountTokens;
         require(token.transfer(msg.sender, amountTokens) == true);
     }
+
+    function getBalance(string memory symbolName)
+        public
+        view
+        returns (uint256)
+    {
+        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
+        return tokenBalanceForAddress[msg.sender][symbolNameIndex];
+    }
+}
