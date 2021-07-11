@@ -91,3 +91,16 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         );
         balanceBnbForAddress[msg.sender] += msg.value;
     }
+
+    function withdrawBnb(uint256 amountInWei) public {
+        require(balanceBnbForAddress[msg.sender] - amountInWei >= 0);
+        require(
+            balanceBnbForAddress[msg.sender] - amountInWei <=
+                balanceBnbForAddress[msg.sender]
+        );
+
+        balanceBnbForAddress[msg.sender] -= amountInWei;
+
+        payable(msg.sender).transfer(amountInWei);
+    }
+
