@@ -112,40 +112,40 @@ contract Exchange {
     function depositToken(string memory symbolName, uint256 amountTokens)
         public
     {
-        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
-        require(tokens[symbolNameIndex].tokenContract != address(0));
+        uint8 symbolNameIndexKey = getSymbolIndexOrThrow(symbolName);
+        require(tokens[symbolNameIndexKey].tokenContract != address(0));
 
-        IERC20 token = IERC20(tokens[symbolNameIndex].tokenContract);
+        IERC20 token = IERC20(tokens[symbolNameIndexKey].tokenContract);
 
         require(
             token.transferFrom(msg.sender, address(this), amountTokens) == true
         );
         require(
-            tokenBalanceForAddress[msg.sender][symbolNameIndex] +
+            tokenBalanceForAddress[msg.sender][symbolNameIndexKey] +
                 amountTokens >=
-                tokenBalanceForAddress[msg.sender][symbolNameIndex]
+                tokenBalanceForAddress[msg.sender][symbolNameIndexKey]
         );
-        tokenBalanceForAddress[msg.sender][symbolNameIndex] += amountTokens;
+        tokenBalanceForAddress[msg.sender][symbolNameIndexKey] += amountTokens;
     }
 
     function withdrawToken(string memory symbolName, uint256 amountTokens)
         public
     {
-        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
-        require(tokens[symbolNameIndex].tokenContract != address(0));
+        uint8 symbolNameIndexKey = getSymbolIndexOrThrow(symbolName);
+        require(tokens[symbolNameIndexKey].tokenContract != address(0));
 
-        IERC20 token = IERC20(tokens[symbolNameIndex].tokenContract);
+        IERC20 token = IERC20(tokens[symbolNameIndexKey].tokenContract);
         require(
-            tokenBalanceForAddress[msg.sender][symbolNameIndex] -
+            tokenBalanceForAddress[msg.sender][symbolNameIndexKey] -
                 amountTokens >=
                 0
         );
         require(
-            tokenBalanceForAddress[msg.sender][symbolNameIndex] -
+            tokenBalanceForAddress[msg.sender][symbolNameIndexKey] -
                 amountTokens <=
-                tokenBalanceForAddress[msg.sender][symbolNameIndex]
+                tokenBalanceForAddress[msg.sender][symbolNameIndexKey]
         );
-        tokenBalanceForAddress[msg.sender][symbolNameIndex] -= amountTokens;
+        tokenBalanceForAddress[msg.sender][symbolNameIndexKey] -= amountTokens;
         require(token.transfer(msg.sender, amountTokens) == true);
     }
 
@@ -154,8 +154,8 @@ contract Exchange {
         view
         returns (uint256)
     {
-        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
-        return tokenBalanceForAddress[msg.sender][symbolNameIndex];
+        uint8 symbolNameIndexKey = getSymbolIndexOrThrow(symbolName);
+        return tokenBalanceForAddress[msg.sender][symbolNameIndexKey];
     }
 
     function getSellOrderBook(string memory symbolName)
@@ -591,9 +591,7 @@ contract Exchange {
         uint256 amount,
         address who
     ) internal {
-
         tokens[tokenIndex].sellBook[priceInWei].offers_length++;
-
 
         tokens[tokenIndex].sellBook[priceInWei].offers[
             tokens[tokenIndex].sellBook[priceInWei].offers_length
@@ -607,12 +605,10 @@ contract Exchange {
             uint256 highestSellPrice = tokens[tokenIndex].highestSellPrice;
 
             if (highestSellPrice == 0 || highestSellPrice < priceInWei) {
-                
                 if (curSellPrice == 0) {
                     tokens[tokenIndex].curSellPrice = priceInWei;
                     tokens[tokenIndex].sellBook[priceInWei].higherPrice = 0;
                     tokens[tokenIndex].sellBook[priceInWei].lowerPrice = 0;
-                   
                 } else {
                     tokens[tokenIndex]
                     .sellBook[highestSellPrice]
@@ -623,9 +619,7 @@ contract Exchange {
                     tokens[tokenIndex].sellBook[priceInWei].higherPrice = 0;
                 }
                 tokens[tokenIndex].highestSellPrice = priceInWei;
-            }
-
-            else if (curSellPrice > priceInWei) {
+            } else if (curSellPrice > priceInWei) {
                 tokens[tokenIndex]
                 .sellBook[curSellPrice]
                 .lowerPrice = priceInWei;
@@ -634,10 +628,7 @@ contract Exchange {
                 .higherPrice = curSellPrice;
                 tokens[tokenIndex].sellBook[priceInWei].lowerPrice = 0;
                 tokens[tokenIndex].curSellPrice = priceInWei;
-            }
-            
-            else {
-      
+            } else {
                 uint256 sellPrice = tokens[tokenIndex].curSellPrice;
                 bool weFoundLocation = false;
 
@@ -647,7 +638,6 @@ contract Exchange {
                         tokens[tokenIndex].sellBook[sellPrice].higherPrice >
                         priceInWei
                     ) {
-                        
                         tokens[tokenIndex]
                         .sellBook[priceInWei]
                         .lowerPrice = sellPrice;
@@ -656,20 +646,20 @@ contract Exchange {
                         .higherPrice = tokens[tokenIndex]
                         .sellBook[sellPrice]
                         .higherPrice;
-                       
+
                         tokens[tokenIndex]
                         .sellBook[
                             tokens[tokenIndex].sellBook[sellPrice].higherPrice
                         ]
                         .lowerPrice = priceInWei;
-                       
+
                         tokens[tokenIndex]
                         .sellBook[sellPrice]
                         .higherPrice = priceInWei;
-                      
+
                         weFoundLocation = true;
                     }
-   
+
                     sellPrice = tokens[tokenIndex]
                     .sellBook[sellPrice]
                     .higherPrice;
@@ -684,40 +674,42 @@ contract Exchange {
         uint256 priceInWei,
         uint256 offerKey
     ) public {
-        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
+        uint8 symbolNameIndexKey = getSymbolIndexOrThrow(symbolName);
 
         if (isSellOrder) {
             require(
-                tokens[symbolNameIndex]
+                tokens[symbolNameIndexKey]
                 .sellBook[priceInWei]
                 .offers[offerKey]
                 .who == msg.sender
             );
 
-            uint256 tokensAmount = tokens[symbolNameIndex]
+            uint256 tokensAmount = tokens[symbolNameIndexKey]
             .sellBook[priceInWei]
             .offers[offerKey]
             .amountTokens;
 
             require(
-                tokenBalanceForAddress[msg.sender][symbolNameIndex] +
+                tokenBalanceForAddress[msg.sender][symbolNameIndexKey] +
                     tokensAmount >=
-                    tokenBalanceForAddress[msg.sender][symbolNameIndex]
+                    tokenBalanceForAddress[msg.sender][symbolNameIndexKey]
             );
 
-            tokenBalanceForAddress[msg.sender][symbolNameIndex] += tokensAmount;
-            tokens[symbolNameIndex]
+            tokenBalanceForAddress[msg.sender][
+                symbolNameIndexKey
+            ] += tokensAmount;
+            tokens[symbolNameIndexKey]
             .sellBook[priceInWei]
             .offers[offerKey]
             .amountTokens = 0;
         } else {
             require(
-                tokens[symbolNameIndex]
+                tokens[symbolNameIndexKey]
                 .buyBook[priceInWei]
                 .offers[offerKey]
                 .who == msg.sender
             );
-            uint256 etherToRefund = tokens[symbolNameIndex]
+            uint256 etherToRefund = tokens[symbolNameIndexKey]
             .buyBook[priceInWei]
             .offers[offerKey]
             .amountTokens * priceInWei;
@@ -728,7 +720,7 @@ contract Exchange {
             );
 
             balanceBnbForAddress[msg.sender] += etherToRefund;
-            tokens[symbolNameIndex]
+            tokens[symbolNameIndexKey]
             .buyBook[priceInWei]
             .offers[offerKey]
             .amountTokens = 0;
@@ -740,7 +732,6 @@ contract Exchange {
         uint256 priceInWei,
         uint256 amount
     ) public payable {
-      
         uint8 tokenNameIndex = getSymbolIndexOrThrow(symbolName);
         uint256 totalAmountOfEtherNecessary = 0;
         uint256 totalAmountOfEtherAvailable = 0;
@@ -759,10 +750,9 @@ contract Exchange {
                 totalAmountOfEtherNecessary
             );
         } else {
-
             uint256 whilePrice = tokens[tokenNameIndex].curBuyPrice;
             uint256 offers_key;
-           
+
             while (whilePrice >= priceInWei && amountOfTokensNecessary > 0) {
                 offers_key = tokens[tokenNameIndex]
                 .buyBook[whilePrice]
@@ -777,9 +767,8 @@ contract Exchange {
                     .buyBook[whilePrice]
                     .offers[offers_key]
                     .amountTokens;
-                   
+
                     if (volumeAtPriceFromAddress <= amountOfTokensNecessary) {
-                       
                         totalAmountOfEtherAvailable =
                             volumeAtPriceFromAddress *
                             whilePrice;
@@ -790,18 +779,16 @@ contract Exchange {
                             ] >= volumeAtPriceFromAddress
                         );
 
-                      
                         tokenBalanceForAddress[msg.sender][
                             tokenNameIndex
                         ] -= volumeAtPriceFromAddress;
 
-                       
                         require(
                             tokenBalanceForAddress[msg.sender][tokenNameIndex] -
                                 volumeAtPriceFromAddress >=
                                 0
                         );
-                       
+
                         require(
                             tokenBalanceForAddress[
                                 tokens[tokenNameIndex]
@@ -817,7 +804,7 @@ contract Exchange {
                                     .who
                                 ][tokenNameIndex]
                         );
-                      
+
                         require(
                             balanceBnbForAddress[msg.sender] +
                                 totalAmountOfEtherAvailable >=
@@ -830,41 +817,34 @@ contract Exchange {
                             .offers[offers_key]
                             .who
                         ][tokenNameIndex] += volumeAtPriceFromAddress;
-                        
+
                         tokens[tokenNameIndex]
                         .buyBook[whilePrice]
                         .offers[offers_key]
                         .amountTokens = 0;
-       
+
                         balanceBnbForAddress[
                             msg.sender
                         ] += totalAmountOfEtherAvailable;
-                      
+
                         tokens[tokenNameIndex].buyBook[whilePrice].offers_key++;
 
-              
-    
                         amountOfTokensNecessary -= volumeAtPriceFromAddress;
-
                     } else {
-    
                         require(
                             volumeAtPriceFromAddress - amountOfTokensNecessary >
                                 0
                         );
 
-   
                         totalAmountOfEtherNecessary =
                             amountOfTokensNecessary *
                             whilePrice;
 
-                    
                         require(
                             tokenBalanceForAddress[msg.sender][
                                 tokenNameIndex
                             ] >= amountOfTokensNecessary
                         );
-
 
                         tokenBalanceForAddress[msg.sender][
                             tokenNameIndex
@@ -915,7 +895,6 @@ contract Exchange {
                         amountOfTokensNecessary = 0;
                     }
 
-
                     if (
                         offers_key ==
                         tokens[tokenNameIndex]
@@ -927,7 +906,6 @@ contract Exchange {
                         .amountTokens ==
                         0
                     ) {
-
                         tokens[tokenNameIndex].amountBuyPrices--;
                         if (
                             whilePrice ==
@@ -941,7 +919,6 @@ contract Exchange {
                         ) {
                             tokens[tokenNameIndex].curBuyPrice = 0;
                         } else {
-    
                             tokens[tokenNameIndex].curBuyPrice = tokens[
                                 tokenNameIndex
                             ]
@@ -964,8 +941,6 @@ contract Exchange {
             }
 
             if (amountOfTokensNecessary > 0) {
-
-
                 createSellLimitOrderForTokensUnableToMatchWithBuyOrderForSeller(
                     symbolName,
                     tokenNameIndex,
@@ -978,13 +953,12 @@ contract Exchange {
     }
 
     function createSellLimitOrderForTokensUnableToMatchWithBuyOrderForSeller(
-        string  memory symbolName,
+        string memory symbolName,
         uint8 tokenNameIndex,
         uint256 priceInWei,
         uint256 amountOfTokensNecessary,
         uint256 totalAmountOfEtherNecessary
     ) internal {
-
         totalAmountOfEtherNecessary = amountOfTokensNecessary * priceInWei;
 
         require(totalAmountOfEtherNecessary >= amountOfTokensNecessary);
