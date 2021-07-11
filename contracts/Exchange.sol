@@ -38,3 +38,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
     mapping(address => mapping(uint8 => uint256)) tokenBalanceForAddress;
 
     mapping(address => uint256) balanceBnbForAddress;
+
+    function stringsEqual(string storage _a, string memory _b)
+        internal
+        view
+        returns (bool)
+    {
+        bytes storage a = bytes(_a);
+        bytes memory b = bytes(_b);
+
+        if (keccak256(a) != keccak256(b)) {
+            return false;
+        }
+        return true;
+    }
+
