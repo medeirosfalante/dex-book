@@ -209,4 +209,58 @@ contract Exchange {
         }
         return (arrPricesSell, arrVolumesSell);
     }
+
+    // Returns Buy Prices Array and Buy Volume Array for each of the Prices
+    function getBuyOrderBook(string memory symbolName)
+        public
+        view
+        returns (uint256[] memory, uint256[] memory)
+    {
+        uint8 tokenNameIndex = getSymbolIndexOrThrow(symbolName);
+        uint256[] memory arrPricesBuy = new uint256[](
+            tokens[tokenNameIndex].amountBuyPrices
+        );
+        uint256[] memory arrVolumesBuy = new uint256[](
+            tokens[tokenNameIndex].amountBuyPrices
+        );
+
+        uint256 whilePrice = tokens[tokenNameIndex].lowestBuyPrice;
+        uint256 counter = 0;
+        if (tokens[tokenNameIndex].curBuyPrice > 0) {
+            while (whilePrice <= tokens[tokenNameIndex].curBuyPrice) {
+                arrPricesBuy[counter] = whilePrice;
+                uint256 buyVolumeAtPrice = 0;
+                uint256 buyOffersKey = 0;
+
+                // Obtain the Volume from Summing all Offers Mapped to a Single Price inside the Buy Order Book
+                buyOffersKey = tokens[tokenNameIndex]
+                .buyBook[whilePrice]
+                .offers_key;
+                while (
+                    buyOffersKey <=
+                    tokens[tokenNameIndex].buyBook[whilePrice].offers_length
+                ) {
+                    buyVolumeAtPrice += tokens[tokenNameIndex]
+                    .buyBook[whilePrice]
+                    .offers[buyOffersKey]
+                    .amountTokens;
+                    buyOffersKey++;
+                }
+                arrVolumesBuy[counter] = buyVolumeAtPrice;
+                // Next whilePrice
+                if (
+                    whilePrice ==
+                    tokens[tokenNameIndex].buyBook[whilePrice].higherPrice
+                ) {
+                    break;
+                } else {
+                    whilePrice = tokens[tokenNameIndex]
+                    .buyBook[whilePrice]
+                    .higherPrice;
+                }
+                counter++;
+            }
+        }
+        return (arrPricesBuy, arrVolumesBuy);
+    }
 }
