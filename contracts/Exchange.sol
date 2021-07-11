@@ -584,6 +584,63 @@ contract Exchange {
             }
         }
     }
+    function cancelOrder(
+        string memory symbolName,
+        bool isSellOrder,
+        uint256 priceInWei,
+        uint256 offerKey
+    ) public {
+        uint8 symbolNameIndex = getSymbolIndexOrThrow(symbolName);
+
+        if (isSellOrder) {
+            require(
+                tokens[symbolNameIndex]
+                .sellBook[priceInWei]
+                .offers[offerKey]
+                .who == msg.sender
+            );
+
+            uint256 tokensAmount = tokens[symbolNameIndex]
+            .sellBook[priceInWei]
+            .offers[offerKey]
+            .amountTokens;
+
+            require(
+                tokenBalanceForAddress[msg.sender][symbolNameIndex] +
+                    tokensAmount >=
+                    tokenBalanceForAddress[msg.sender][symbolNameIndex]
+            );
+
+            tokenBalanceForAddress[msg.sender][symbolNameIndex] += tokensAmount;
+            tokens[symbolNameIndex]
+            .sellBook[priceInWei]
+            .offers[offerKey]
+            .amountTokens = 0;
+        } else {
+            require(
+                tokens[symbolNameIndex]
+                .buyBook[priceInWei]
+                .offers[offerKey]
+                .who == msg.sender
+            );
+            uint256 etherToRefund = tokens[symbolNameIndex]
+            .buyBook[priceInWei]
+            .offers[offerKey]
+            .amountTokens * priceInWei;
+
+            require(
+                balanceBnbForAddress[msg.sender] + etherToRefund >=
+                    balanceBnbForAddress[msg.sender]
+            );
+
+            balanceBnbForAddress[msg.sender] += etherToRefund;
+            tokens[symbolNameIndex]
+            .buyBook[priceInWei]
+            .offers[offerKey]
+            .amountTokens = 0;
+        }
+    }
+
     function sellToken(
         string memory symbolName,
         uint256 priceInWei,
