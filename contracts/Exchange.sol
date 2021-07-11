@@ -210,7 +210,6 @@ contract Exchange {
         return (arrPricesSell, arrVolumesSell);
     }
 
-    // Returns Buy Prices Array and Buy Volume Array for each of the Prices
     function getBuyOrderBook(string memory symbolName)
         public
         view
@@ -231,8 +230,6 @@ contract Exchange {
                 arrPricesBuy[counter] = whilePrice;
                 uint256 buyVolumeAtPrice = 0;
                 uint256 buyOffersKey = 0;
-
-                // Obtain the Volume from Summing all Offers Mapped to a Single Price inside the Buy Order Book
                 buyOffersKey = tokens[tokenNameIndex]
                 .buyBook[whilePrice]
                 .offers_key;
@@ -247,7 +244,7 @@ contract Exchange {
                     buyOffersKey++;
                 }
                 arrVolumesBuy[counter] = buyVolumeAtPrice;
-                // Next whilePrice
+
                 if (
                     whilePrice ==
                     tokens[tokenNameIndex].buyBook[whilePrice].higherPrice
