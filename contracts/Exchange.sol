@@ -104,3 +104,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
         payable(msg.sender).transfer(amountInWei);
     }
 
+    function getEthBalanceInWei() public view returns (uint256) {
+        return balanceBnbForAddress[msg.sender];
+    }
+
