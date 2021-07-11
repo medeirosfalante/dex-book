@@ -584,6 +584,100 @@ contract Exchange {
             }
         }
     }
+
+    function addSellOffer(
+        uint8 tokenIndex,
+        uint256 priceInWei,
+        uint256 amount,
+        address who
+    ) internal {
+
+        tokens[tokenIndex].sellBook[priceInWei].offers_length++;
+
+
+        tokens[tokenIndex].sellBook[priceInWei].offers[
+            tokens[tokenIndex].sellBook[priceInWei].offers_length
+        ] = Offer(amount, who);
+
+        if (tokens[tokenIndex].sellBook[priceInWei].offers_length == 1) {
+            tokens[tokenIndex].sellBook[priceInWei].offers_key = 1;
+            tokens[tokenIndex].amountSellPrices++;
+
+            uint256 curSellPrice = tokens[tokenIndex].curSellPrice;
+            uint256 highestSellPrice = tokens[tokenIndex].highestSellPrice;
+
+            if (highestSellPrice == 0 || highestSellPrice < priceInWei) {
+                
+                if (curSellPrice == 0) {
+                    tokens[tokenIndex].curSellPrice = priceInWei;
+                    tokens[tokenIndex].sellBook[priceInWei].higherPrice = 0;
+                    tokens[tokenIndex].sellBook[priceInWei].lowerPrice = 0;
+                   
+                } else {
+                    tokens[tokenIndex]
+                    .sellBook[highestSellPrice]
+                    .higherPrice = priceInWei;
+                    tokens[tokenIndex]
+                    .sellBook[priceInWei]
+                    .lowerPrice = highestSellPrice;
+                    tokens[tokenIndex].sellBook[priceInWei].higherPrice = 0;
+                }
+                tokens[tokenIndex].highestSellPrice = priceInWei;
+            }
+
+            else if (curSellPrice > priceInWei) {
+                tokens[tokenIndex]
+                .sellBook[curSellPrice]
+                .lowerPrice = priceInWei;
+                tokens[tokenIndex]
+                .sellBook[priceInWei]
+                .higherPrice = curSellPrice;
+                tokens[tokenIndex].sellBook[priceInWei].lowerPrice = 0;
+                tokens[tokenIndex].curSellPrice = priceInWei;
+            }
+            
+            else {
+      
+                uint256 sellPrice = tokens[tokenIndex].curSellPrice;
+                bool weFoundLocation = false;
+
+                while (sellPrice > 0 && !weFoundLocation) {
+                    if (
+                        sellPrice < priceInWei &&
+                        tokens[tokenIndex].sellBook[sellPrice].higherPrice >
+                        priceInWei
+                    ) {
+                        
+                        tokens[tokenIndex]
+                        .sellBook[priceInWei]
+                        .lowerPrice = sellPrice;
+                        tokens[tokenIndex]
+                        .sellBook[priceInWei]
+                        .higherPrice = tokens[tokenIndex]
+                        .sellBook[sellPrice]
+                        .higherPrice;
+                       
+                        tokens[tokenIndex]
+                        .sellBook[
+                            tokens[tokenIndex].sellBook[sellPrice].higherPrice
+                        ]
+                        .lowerPrice = priceInWei;
+                       
+                        tokens[tokenIndex]
+                        .sellBook[sellPrice]
+                        .higherPrice = priceInWei;
+                      
+                        weFoundLocation = true;
+                    }
+   
+                    sellPrice = tokens[tokenIndex]
+                    .sellBook[sellPrice]
+                    .higherPrice;
+                }
+            }
+        }
+    }
+
     function cancelOrder(
         string memory symbolName,
         bool isSellOrder,
