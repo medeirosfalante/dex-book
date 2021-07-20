@@ -988,4 +988,12 @@ contract Exchange {
             msg.sender
         );
     }
+
+
+      function addToken(string symbolName, address bep20TokenAddress) public onlyowner {
+        require(!hasToken(symbolName));
+        symbolNameIndex++;
+        tokens[symbolNameIndex].symbolName = symbolName;
+        tokens[symbolNameIndex].tokenContract = bep20TokenAddress;
+    }
 }
